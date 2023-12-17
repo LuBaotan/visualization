@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>test</title>
+    <script src="../libs/d3.v7.js"></script>
+    <script src="../libs/vega.js"></script>
+    <style>
+        /* Define the style for the scrollable area */
+        #textDisplay {
+            height: 300px; /* Set a fixed height for the scrollable area */
+            overflow-y: scroll; /* Enable vertical scrolling */
+            border: 1px solid #ccc; /* Add a border for visual clarity */
+        }
+        #textDisplay pre {
+            margin-top: -18px;
+        }
+        .big-font {
+            font-size: 16px; /* 设置更大的字号 */
+            font-weight: bold; /* 可选：使字体加粗 */
+        }
+        img {
+            width: 21%;    /* 图片宽度 */
+            height: auto;    /* 高度自动 */
+            display: block;  /* 块级元素 */
+            position: absolute;
+            top: 10px;   /* 距离顶部50像素 */
+            left: 1210px; /* 距离左侧100像素 */
+        }
+    </style>
+    <style>
+        div.control-group2 {
+			position: absolute;
+			/* 使用绝对定位 */
+			top: 30px;
+			/* 距离父元素顶部的距离 */
+			left: 20px;
+			/* 距离父元素左侧的距离 */
+
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			margin-top: 20px;
+		}
+
+		.control-group2 button {
+			width: 100px;
+			height: 40px;
+			border-radius: 10px;
+			/*使按钮变为圆角矩形*/
+			margin-bottom: 10px;
+		}
+
+		.control-group2 button:active {
+			transform: scale(1.1);
+		}
+    </style>
+
+</head>
+<body>
+    <svg width="1200" height="600" id="mainsvg" className="svgs"></svg>
+    <button onclick="changeSSL()">Change player1</button>
+    <button onclick="changeSSL2()">Change player2</button>
+    <img src="1.jpg">
+    <div id="textDisplay">
+        <pre id="textContent">
+            <!-- Text content will be displayed here -->
+        </pre>
+    </div>
+
+    <div class="control-group2">
+		<a href="../../index.html"><button>Home</button></a>
+	</div>
+
+
+    <script>
+        var datas = [];
+        var ssl = 0; // Default ssl value
+        var ssl2= 1;
+
+        var datalimits={min:-1,pts:-1,reb:-1,stl:-1,blk:-1,ast:-1}
+        var dataevra={min:0,pts:0,reb:0,stl:0,blk:0,ast:0}
+        const svg = d3.select('#mainsvg');
+        const width = +svg.attr('width');
+        const height = +svg.attr('height');
+        const margin = { top: 200, right: 280, left: 280, bottom: 200 };
+        const innerWidth = width - (margin.left + margin.right);
+        const innerHeight = height - (margin.top + margin.bottom);
+
+        const assiwidth = width * 0.6;
+        const assiy = height * 0.1;
+        const angle0 = Math.PI / 6;
+        const pointx = [assiwidth / 2.0, assiwidth * 3.0 / 4.0, assiwidth * 3.0 / 4.0, assiwidth / 2.0, assiwidth / 4.0, assiwidth / 4.0, assiwidth / 2.0];
+        const pointy = [0 + assiy,
+                        assiwidth / 4.0 * Math.tan(angle0) + assiy,
+                        assiwidth * (3.0 / 4.0) * Math.tan(angle0) + assiy,
+                        assiwidth * Math.tan(angle0) + assiy,
+                        assiwidth * (3.0 / 4.0) * Math.tan(angle0) + assiy,
+                        assiwidth / 4.0 * Math.tan(angle0) + assiy,
+                        assiwidth / 2.0 * Math.tan(angle0) + assiy];
+        const g = svg.append('g')
+            .attr('id', 'maingroup')
+            .attr('transform', `translate(${0},${0})`);
+
+
+
+            g.append('rect')
+                .attr('x', 0)
+                .attr('y', 0)
+                .attr('width', width)
+                .attr('height', height)
+                .attr('fill', 'red')
+                .attr('opacity', 0.1);
+        d3.text("../func/NBA_team_datas_2022_23rgl.csv").then(function (data) {
+            var lines = data.split("\n");
+            lines.forEach(function (line) {
+                var parts = line.split(",");
+                var tempdata = {
+                    label: parts[0].trim(),
+                    min: parseFloat(parts[3]),
+                    pts: parseFloat(parts[4]),
+                    reb: parseFloat(parts[7]),
+                    ast: parseFloat(parts[8]),
+                    stl: parseFloat(parts[9]),
+                    blk: parseFloat(parts[10]),
+                };
+                if(tempdata.min>datalimits.min)datalimits.min=tempdata.min
+                if(tempdata.pts>datalimits.pts)datalimits.pts=tempdata.pts
+                if(tempdata.reb>datalimits.reb)datalimits.reb=tempdata.reb
+                if(tempdata.ast>datalimits.ast)datalimits.ast=tempdata.ast
+                if(tempdata.stl>datalimits.stl)datalimits.stl=tempdata.stl
+                if(tempdata.blk>datalimits.blk)datalimits.blk=tempdata.blk
+                datalimits.stl+=0.001
+                datas.push(tempdata);
+            });
+            // 在加载完数据后绘制图形
+            renderGraph();
+
+        });
+
+        function renderGraph() {
+            const Sc0 = d3.scaleLinear()
+                .domain([0, datalimits.min])
+                .range([pointy[6], pointy[0]])
+
+            const Ais0 = d3.axisLeft(Sc0)
+                .tickValues([0, datalimits.min/5.0, datalimits.min/5.0*2, datalimits.min/5.0*3, datalimits.min/5.0*4, datalimits.min]);
+
+            const Sc1 = d3.scaleLinear()
+                .domain([0, datalimits.pts])
+                .range([pointx[0], pointx[1]]);
+            const Ais1 = d3.axisTop(Sc1)
+
+            const Sc11 = d3.scaleLinear()
+                .domain([0, datalimits.pts])
+                .range([pointy[6], pointy[0]])
+            const Ais11 = d3.axisLeft(Sc11)
+                .tickValues([0, datalimits.pts/5.0, datalimits.pts/5.0*2, datalimits.pts/5.0*3, datalimits.pts/5.0*4, datalimits.pts]);
+
+            const Sc2 = d3.scaleLinear()
+                .domain([0, datalimits.reb])
+                .range([pointx[0], pointx[1]]);
+            const Ais2 = d3.axisBottom(Sc2);
+
+            const Sc22 = d3.scaleLinear()
+                .domain([0, datalimits.reb])
+                .range([pointy[6], pointy[0]]);
+            const Ais22 = d3.axisRight(Sc22)
+                .tickValues([0, datalimits.reb/5.0, datalimits.reb/5.0*2, datalimits.reb/5.0*3, datalimits.reb/5.0*4, datalimits.reb]);
+
+            const Sc3 = d3.scaleLinear()
+                .domain([0, datalimits.ast])
+                .range([pointy[6], pointy[3]]);
+            const Ais3 = d3.axisLeft(Sc3)
+                .tickValues([0, datalimits.ast/5.0, datalimits.ast/5.0*2, datalimits.ast/5.0*3, datalimits.ast/5.0*4, datalimits.ast]);
+
+            const Sc4 = d3.scaleLinear()
+                .domain([0, datalimits.stl])
+                .range([pointx[6], pointx[5]]);
+            const Ais4 = d3.axisBottom(Sc4);
+
+            const Sc44 = d3.scaleLinear()
+                .domain([0, datalimits.stl])
+                .range([pointy[6], pointy[0]]);
+            const Ais44 = d3.axisLeft(Sc44)
+                .tickValues([0, datalimits.stl/5.0, datalimits.stl/5.0*2, datalimits.stl/5.0*3, datalimits.stl/5.0*4, datalimits.stl]);
+
+            const Sc5 = d3.scaleLinear()
+                .domain([0, datalimits.blk])
+                .range([pointx[6], pointx[5]]);
+            const Ais5 = d3.axisTop(Sc5);
+
+            const Sc55 = d3.scaleLinear()
+                .domain([0, datalimits.blk])
+                .range([pointy[6], pointy[0]]);
+            const Ais55 = d3.axisRight(Sc55)
+                .tickValues([0, datalimits.blk/5.0, datalimits.blk/5.0*2, datalimits.blk/5.0*3, datalimits.blk/5.0*4, datalimits.blk]);
+
+
+            svg.selectAll("polygon").remove();
+            show(ssl);
+            show2(ssl2)
+            // 创建多边形元素
+            svg.append("polygon")
+                .attr("points", function () {
+                    return pdt.map(function (d) {
+                        return [d.x, d.y].join(",");
+                    }).join(" ");
+                })
+                .attr("fill", "blue")
+                .attr('opacity',0.5)
+                .attr('stroke','black')
+            svg.append("polygon")
+                .attr("points", function () {
+                    return pdt2.map(function (d) {
+                        return [d.x, d.y].join(",");
+                    }).join(" ");
+                })
+                .attr("fill", "green")
+                .attr('opacity',0.5)
+                .attr('stroke','green')
+
+            g.append('text')
+                .text('MIN')
+                .attr('transform', `translate(${pointx[0]},${pointy[0] * 0.9})`)
+                .style('font-size', 25)
+                .attr("text-anchor", "middle"); // 设置锚点为middle
+            g.append('text')
+                .text('PTS')
+                .attr('transform', `translate(${pointx[1]},${pointy[1]})`)
+                .style('font-size', 25)
+                .attr("text-anchor", "start"); // 设置锚点为middle
+            g.append('text')
+                .text('REB')
+                .attr('transform', `translate(${pointx[2]},${pointy[2]})`)
+                .style('font-size', 25)
+                .attr("text-anchor", "start"); // 设置锚点为middle
+            g.append('text')
+                .text('AST')
+                .attr('transform', `translate(${pointx[3]},${pointy[3] * 1.075})`)
+                .style('font-size', 25)
+                .attr("text-anchor", "middle"); // 设置锚点为middle
+            g.append('text')
+                .text('STL')
+                .attr('transform', `translate(${pointx[4]},${pointy[4]})`)
+                .style('font-size', 25)
+                .attr("text-anchor", "end"); // 设置锚点为middle
+            g.append('text')
+                .text('BLK')
+                .attr('transform', `translate(${pointx[5]},${pointy[5]})`)
+                .style('font-size', 25)
+                .attr("text-anchor", "end"); // 设置锚点为middle
+
+            for (var i = 0; i < 6; i++) {
+                svg.append("circle")
+                    .attr("cx", pointx[i])
+                    .attr("cy", pointy[i])
+                    .attr("r", 3)
+                    .attr('fill', 'none')
+                    .attr("stroke", "none");
+            }
+            for (i = 0; i <= 5; i++) {
+                svg.append('line')
+                    .attr('x1', pointx[i])
+                    .attr('y1', pointy[i])
+                    .attr('x2', pointx[(i + 1) % 6])
+                    .attr('y2', pointy[(i + 1) % 6])
+                    .attr('stroke', 'black');
+            }
+            for (i = 0; i <= 2; i++) {
+                svg.append('line')
+                    .attr('x1', pointx[i])
+                    .attr('y1', pointy[i])
+                    .attr('x2', pointx[i + 3])
+                    .attr('y2', pointy[i + 3])
+                    .attr('stroke', 'black');
+            }
+
+            
+            svg.append('g')
+                .call(Ais0)
+                .attr('transform', `translate(${pointx[6]},${0})`)
+                .selectAll("text")
+                .style("font-size", "5px")
+            svg.append('g')
+                .call(Ais11)
+                .attr('transform', `rotate(60,${pointx[1]},${pointy[1]}) translate(${pointx[1]},${pointy[1]-(pointy[2]-pointy[1])/3.5}) `)
+                .selectAll("text")
+                .style("font-size", "5px")
+            // svg.append('g')
+            //     .call(Ais1)
+            //     .attr('transform', `translate(${0},${pointy[6]})`)
+            //     .selectAll("text")
+            //     .style("font-size", "5px")
+            // svg.append('g')
+            //     .call(Ais2)
+            //     .attr('transform', `translate(${0},${pointy[6]})`)
+            //     .selectAll("text")
+            //     .style("font-size", "5px")
+            svg.append('g')
+                .call(Ais22)
+                .attr('transform', `rotate(120,${pointx[2]},${pointy[2]}) translate(${pointx[2]},${pointy[2]-(pointy[2]-pointy[1])/3.5}) `)
+                .selectAll("text")
+                .style("font-size", "5px")
+            svg.append('g')
+                .call(Ais3)
+                .attr('transform', `translate(${pointx[6]},${0})`)
+                .selectAll("text")
+                .style("font-size", "5px")
+            // svg.append('g')
+            //     .call(Ais4)
+            //     .attr('transform', `translate(${0},${pointy[6]})`)
+            //     .selectAll("text")
+            //     .style("font-size", "5px")
+            svg.append('g')
+                .call(Ais44)
+                .attr('transform', `rotate(-120,${pointx[4]},${pointy[4]}) translate(${pointx[4]},${pointy[4]-(pointy[2]-pointy[1])/3.5}) `)
+                .selectAll("text")
+                .style("font-size", "5px")
+            // svg.append('g')
+            //     .call(Ais5)
+            //     .attr('transform', `translate(${0},${pointy[6]})`)
+            //     .selectAll("text")
+            //     .style("font-size", "5px")
+            svg.append('g')
+                .call(Ais55)
+                .attr('transform', `rotate(-60,${pointx[5]},${pointy[5]}) translate(${pointx[5]},${pointy[5]-(pointy[2]-pointy[1])/3.5}) `)
+                .selectAll("text")
+                .style("font-size", "5px")
+            g.selectAll(".text")
+                .style("font-size", "2px"); // 设置字体大小为12像素
+            function mapping1(t) {
+                return pointy[6] - (t - Sc1(0)) * Math.tan(angle0);
+            }
+            function mapping2(t) {
+                return pointy[6] + (t - Sc1(0)) * Math.tan(angle0);
+            }
+            function mapping4(t) {
+                return pointy[6] + (Sc1(0) - t) * Math.tan(angle0);
+            }
+            function mapping5(t) {
+                return pointy[6] - (Sc1(0) - t) * Math.tan(angle0);
+            }
+            function show(ct) {
+                pdt = []; // Clear previous data
+                var temp0 = { x: pointx[6], y: Sc0(datas[ct].min) };
+                var temp1 = { x: Sc1(datas[ct].pts), y: mapping1(Sc1(datas[ct].pts)) };
+                var temp2 = { x: Sc2(datas[ct].reb), y: mapping2(Sc2(datas[ct].reb)) };
+                var temp3 = { x: pointx[6], y: Sc3(datas[ct].ast) };
+                var temp4 = { x: Sc4(datas[ct].stl), y: mapping4(Sc4(datas[ct].stl)) };
+                var temp5 = { x: Sc5(datas[ct].blk), y: mapping5(Sc5(datas[ct].blk)) };
+
+                pdt.push(temp0);
+                pdt.push(temp1);
+                pdt.push(temp2);
+                pdt.push(temp3);
+                pdt.push(temp4);
+                pdt.push(temp5);
+
+
+            }
+            function show2(ct) {
+                pdt2 = []; // Clear previous data
+                var temp0 = { x: pointx[6], y: Sc0(datas[ct].min) };
+                var temp1 = { x: Sc1(datas[ct].pts), y: mapping1(Sc1(datas[ct].pts)) };
+                var temp2 = { x: Sc2(datas[ct].reb), y: mapping2(Sc2(datas[ct].reb)) };
+                var temp3 = { x: pointx[6], y: Sc3(datas[ct].ast) };
+                var temp4 = { x: Sc4(datas[ct].stl), y: mapping4(Sc4(datas[ct].stl)) };
+                var temp5 = { x: Sc5(datas[ct].blk), y: mapping5(Sc5(datas[ct].blk)) };
+
+                pdt2.push(temp0);
+                pdt2.push(temp1);
+                pdt2.push(temp2);
+                pdt2.push(temp3);
+                pdt2.push(temp4);
+                pdt2.push(temp5);
+
+                
+
+            }
+
+
+        }
+
+        function updateLegend(playerName, playerNumber) {
+            var color = playerNumber === 1 ? "blue" : "green"; // 第一个球员为蓝色，第二个为绿色
+
+            // 检查是否已经有相应的图例文本
+            var legendText = svg.select("#legendText" + playerNumber);
+            var legendRect = svg.select("#legendRect" + playerNumber);
+
+            // 如果文本不存在，就创建一个新的文本元素和矩形元素
+            if (legendText.empty()) {
+                legendRect = svg.append("rect")
+                .attr("id", "legendRect" + playerNumber)
+                .attr("x", 10) // 矩形的 x 位置
+                .attr("y", 20 * playerNumber + 5) // 矩形的 y 位置
+                .attr("width", 10) // 矩形的宽度
+                .attr("height", 10) // 矩形的高度
+                .attr("fill", color); // 矩形的填充颜色
+
+                legendText = svg.append("text")
+                .attr("id", "legendText" + playerNumber)
+                .attr("x", 30) // 文本的 x 位置
+                .attr("y", 20 * playerNumber + 15) // 文本的 y 位置
+                .attr("font-size", "16px");
+            }
+
+            // 更新矩形和文本的颜色
+            legendRect.attr("fill", color);
+            // 更新图例文本
+            legendText.text(playerName);
+            }
+
+
+
+        function changeSSL() {
+            // Prompt user for a new ssl value
+            var newSSL = prompt("Enter the number of player:", ssl);
+            // Check if the input is a number
+            if (!isNaN(newSSL)) {
+                ssl = parseInt(newSSL);
+                // Re-render the graph with the new ssl value
+                renderGraph();
+            } else {
+                alert("Please enter a valid number!");
+            }
+
+            var playerName = datas[ssl].label; // 获取球员名称
+            updateLegend(playerName, 1); // 更新第一个球员的图例
+        }
+        function changeSSL2() {
+            // Prompt user for a new ssl value
+            var newSSL = prompt("Enter the number of player:", ssl2);
+            // Check if the input is a number
+            if (!isNaN(newSSL)) {
+                ssl2 = parseInt(newSSL);
+                // Re-render the graph with the new ssl value
+                renderGraph();
+            } else {
+                alert("Please enter a valid number!");
+            }
+
+            var playerName = datas[ssl2].label; // 获取球员名称
+            updateLegend(playerName, 2); // 更新第一个球员的图例
+        }
+        d3.text("../func/NBA_team_datas_2022_23rgl.csv").then(function (data) {
+            var lines = data.split("\n");
+            var playerList = ""; // 用于保存球员名字和编号的字符串
+            var playerNumber = 0; // 初始化球员编号为0
+            lines.forEach(function (line, index) {
+                var parts = line.split(",");
+                var playerName = parts[0].trim(); 
+                playerList += playerNumber + ": " + playerName + "\n"; // 将编号和球员名字添加到字符串
+                playerNumber++; // 递增球员编号
+            });
+            // 将球员列表显示在textDisplay区域
+            var textDisplay = d3.select("#textDisplay").append("pre");
+            textDisplay.append("div")
+                .attr("class", "big-font") // 应用新的CSS类
+                .text("编号: 球员");
+            textDisplay.append("div")
+                .attr("class", "big-font")
+                .text(playerList);
+        });
+
+    </script>
+</body>
+</html>

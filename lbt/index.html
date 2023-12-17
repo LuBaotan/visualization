@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<script src="https://d3js.org/d3.v7.min.js" charset="utf-8"></script>
+	<style>
+		div.control-group {
+			position: absolute;
+			/* 使用绝对定位 */
+			top: 50px;
+			/* 距离父元素顶部的距离 */
+			right: 80px;
+			/* 距离父元素左侧的距离 */
+
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			margin-top: 20px;
+		}
+
+		.control-group button {
+			width: 100px;
+			height: 40px;
+			border-radius: 10px;
+			/*使按钮变为圆角矩形*/
+			margin-bottom: 10px;
+		}
+
+		.control-group button:active {
+			transform: scale(1.1);
+		}
+
+		div.control-group2 {
+			position: absolute;
+			/* 使用绝对定位 */
+			top: 30px;
+			/* 距离父元素顶部的距离 */
+			left: 20px;
+			/* 距离父元素左侧的距离 */
+
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			margin-top: 20px;
+		}
+
+		.control-group2 button {
+			width: 100px;
+			height: 40px;
+			border-radius: 10px;
+			/*使按钮变为圆角矩形*/
+			margin-bottom: 10px;
+		}
+
+		.control-group2 button:active {
+			transform: scale(1.1);
+		}
+	</style>
+</head>
+</head>
+
+<body>
+	<div class='control-group'>
+		<button onclick="mydraw()">Ranks</button>
+		<button onclick="mydraw2()">Person</button>
+	</div>
+	<div class="control-group2">
+		<a href="../index.html"><button>Home</button></a>
+	</div>
+	<div style="text-align: center;">
+		<svg id="mysvg" width=1100 height=600></svg>
+	</div>
+	<script>
+		var canva = document.getElementById("myCanvas");
+		d3.select("svg")
+			.append("image")
+			.attr("xlink:href", "./photo/bz.jpg")
+			.attr("x", 0)
+			.attr("y", 0)
+			.attr("width", 1100)
+			.attr("height", 600)
+			.style("opacity", 0.5); // 设置透明度为50%
+		let ticker;
+	</script>
+	<script id="script1" src="index.js"></script>
+	<script id="script1" src="index2.js"></script>
+</body>
+
+</html>

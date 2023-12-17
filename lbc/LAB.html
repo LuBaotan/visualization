@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>可视化实验</title>
+    <script src="./libs/d3.v7.js"></script>
+    <script src="./libs/vega.js"></script>
+</head>
+<body>
+    <svg width="1400" height="700" id="mainsvg" className="svgs"></svg>
+    <svg width="1400" height="700" id="newSvg"></svg>
+    <button onclick="changeSSL()">Blocks</button>
+    <button onclick="changeSSL1()">Steals</button>
+    <button onclick="changeSSL2()">Rebounds</button>
+    <svg width="1400" height="700" id="figureSvg"></svg>
+
+    <div id="lbc1">
+            <script>
+                    var datas=[]
+                    const svg=d3.select('#mainsvg');//缩影到主画布
+                    const width= +svg.attr('width');//获得svg的width属性，从字符串转化为数值后，赋给变量const width
+                    const height=+svg.attr('height');
+                    const margin={top:150,right:280,left:280,bottom:150};//定义边缘空隙
+                    const innerWidth=width-(margin.left+margin.right);
+                    const innerHeight=height-(margin.top+margin.bottom);
+
+
+                    const Dispx=innerWidth/3;
+                    const Dispy=innerHeight/2;
+                    const newloc={ax:Dispx,ay:Dispy,
+                        bx:Dispx+150,by:Dispy-100,
+                        cx:Dispx+150+innerWidth,cy:Dispy-100,
+                        dx:Dispx+innerWidth,dy:Dispy,
+                        ex:Dispx,ey:Dispy+innerHeight,
+                        fx:Dispx+150,fy:Dispy+innerHeight-100,
+                        gx:Dispx+150+innerWidth,gy:Dispy+innerHeight-100,
+                        hx:Dispx+innerWidth,hy:Dispy+innerHeight}
+                    const sf1=[{x:newloc.ex,y:newloc.ey},{x:newloc.fx,y:newloc.fy},{x:newloc.gx,y:newloc.gy},{x:newloc.hx,y:newloc.hy}]
+                    const sf2=[{x:newloc.ax,y:newloc.ay},{x:newloc.bx,y:newloc.by},{x:newloc.fx,y:newloc.fy},{x:newloc.ex,y:newloc.ey}]
+                    const sf3=[{x:newloc.bx,y:newloc.by},{x:newloc.cx,y:newloc.cy},{x:newloc.gx,y:newloc.gy},{x:newloc.fx,y:newloc.fy}]
+                    const g=svg.append('g')
+                        .attr('id','maingroup')
+                        .attr('transform',`translate(${0},${0})`)
+
+                    d3.text("./data/test.csv").then(function(data) {
+                            var lines = data.split("\n");
+                            lines.forEach(function(line) {
+                                var parts = line.split(",");
+                                var tempdata = {
+                                        // label:parts[0].trim(),
+                                        // x: parseFloat(parts[3]),
+                                        // y: parseFloat(parts[4]),
+                                        // z: parseFloat(parts[8]),
+                                        label:parts[12].trim(),
+                                            x:parseFloat(parts[11]),
+                                            y:parseFloat(parts[2]),
+                                            z:parseFloat(parts[6]),
+                                };
+                                datas.push(tempdata);
+                            });
+                            // 在加载完数据后绘制图形
+                            renderGraph();
+                        });
+
+                    function renderGraph() {
+                        const xScale = d3.scaleLinear()
+                            .domain([0, d3.max(datas, d => d.x)])
+                            //.domain([0,MinLimits])
+                            .range([0, innerWidth])
+
+                        const xAxis = d3.axisBottom(xScale)
+
+
+                        const yScale = d3.scaleLinear()
+                            .domain([d3.max(datas, d => d.y), 0])
+                            //.domain([PotLimits,0])
+                            .range([0, innerHeight]);
+                        const yAxis = d3.axisLeft(yScale);
+                        g.append("polygon")
+                            .attr("points", function () {
+                                return sf1.map(function (d) {
+                                    return [d.x, d.y].join(",");
+                                }).join(" ");
+                            })
+                            .attr("fill", "green")
+                            .attr('opacity', 0.1)
+                            .attr('stroke', 'green')
+                        g.append("polygon")
+                            .attr("points", function () {
+                                return sf2.map(function (d) {
+                                    return [d.x, d.y].join(",");
+                                }).join(" ");
+                            })
+                            .attr("fill", "red")
+                            .attr('opacity', 0.1)
+                            .attr('stroke', 'green')
+                        g.append("polygon")
+                            .attr("points", function () {
+                                return sf3.map(function (d) {
+                                    return [d.x, d.y].join(",");
+                                }).join(" ");
+                            })
+                            .attr("fill", "blue")
+                            .attr('opacity', 0.1)
+                            .attr('stroke', 'green')
+
+                        g.append('rect')
+                            .attr('x', 0)
+                            .attr('y', 0)
+                            .attr('width', width)
+                            .attr('height', height)
+                            .attr('fill', 'OrangeRed ')
+                            .attr('stroke', 'none')
+                            .attr('opacity', 0.01)
+
+                        for (var i = 0; i <= d3.max(datas, d => d.x); i++) {
+                            g.append('line')
+                                .attr('x1', newloc.ex + xScale(i))
+                                .attr('y1', newloc.ey)
+                                .attr('x2', newloc.fx + xScale(i))
+                                .attr('y2', newloc.fy)
+                                .attr('stroke', 'grey')
+                                .attr('stroke-width', 0.2)
+                            g.append('line')
+                                .attr('x1', newloc.fx + xScale(i))
+                                .attr('y1', newloc.fy)
+                                .attr('x2', newloc.bx + xScale(i))
+                                .attr('y2', newloc.by)
+                                .attr('stroke', 'grey')
+                                .attr('stroke-width', 0.1)
+                        }
+                        for (var i = 0; i <= d3.max(datas, d => d.y); i++) {
+                            g.append('line')
+                                .attr('x1', newloc.ex)
+                                .attr('y1', newloc.ey - yScale(i))
+                                .attr('x2', newloc.fx)
+                                .attr('y2', newloc.fy - yScale(i))
+                                .attr('stroke', 'grey')
+                                .attr('stroke-width', 0.2)
+                            g.append('line')
+                                .attr('x1', newloc.fx)
+                                .attr('y1', newloc.fy - yScale(i))
+                                .attr('x2', newloc.gx)
+                                .attr('y2', newloc.gy - yScale(i))
+                                .attr('stroke', 'grey')
+                                .attr('stroke-width', 0.1)
+                        }
+                        for (var i = 0; i <= 10; i++) {
+                            const xdisp = newloc.fx - newloc.ex
+                            const ydisp = newloc.ey - newloc.fy
+                            g.append('line')
+                                .attr('x1', newloc.ex + xdisp * i / 10)
+                                .attr('y1', newloc.ey - ydisp * i / 10)
+                                .attr('x2', newloc.hx + xdisp * i / 10)
+                                .attr('y2', newloc.hy - ydisp * i / 10)
+                                .attr('stroke', 'grey')
+                                .attr('stroke-width', 0.9 - i * 0.08)
+                        }
+                        for (var i = 0; i <= 10; i++) {
+                            const xdisp = newloc.fx - newloc.ex
+                            const ydisp = newloc.ey - newloc.fy
+                            g.append('line')
+                                .attr('x1', newloc.ex + xdisp * i / 10)
+                                .attr('y1', newloc.ey - ydisp * i / 10)
+                                .attr('x2', newloc.ax + xdisp * i / 10)
+                                .attr('y2', newloc.ay - ydisp * i / 10)
+                                .attr('stroke', 'grey')
+                                .attr('stroke-width', 0.9 - i * 0.08)
+                        }
+                        datas.forEach(d => {
+                            // 绘制数据点
+                            const circle = g.append('circle')
+                                .attr('cx', xScale(d.x) + Dispx + (d.z / d3.max(datas, t => t.z)) * 150)
+                                .attr('cy', yScale(d.y) + Dispy - (d.z / d3.max(datas, t => t.z)) * 100)
+                                .attr('r', 2.8)
+                                .attr('fill', 'orangered')
+                                .attr('stroke', 'none')
+                                .attr('opacity', 1)
+                            const circle1 = g.append('circle')
+                                .attr('cx', newloc.ex + (d.z / d3.max(datas, t => t.z)) * 150)
+                                .attr('cy', yScale(d.y) + Dispy - (d.z / d3.max(datas, t => t.z)) * 100)
+                                .attr('r', 2.0)
+                                .attr('fill', 'grey')
+                                .attr('stroke', 'none')
+                                .attr('opacity', 0.35)
+                            const circle2 = g.append('circle')
+                                .attr('cx', xScale(d.x) + Dispx + (d.z / d3.max(datas, t => t.z)) * 150)
+                                .attr('cy', newloc.ey - (d.z / d3.max(datas, t => t.z)) * 100)
+                                .attr('r', 2.0)
+                                .attr('fill', 'grey')
+                                .attr('stroke', 'none')
+                                .attr('opacity', 0.35)
+                            const circle3 = g.append('circle')
+                                .attr('cx', xScale(d.x) + Dispx + 150)
+                                .attr('cy', yScale(d.y) + Dispy - 100)
+                                .attr('r', 2.0)
+                                .attr('fill', 'grey')
+                                .attr('stroke', 'none')
+                                .attr('opacity', 0.35)
+                            // const line2 = g.append('line')
+                            //     .attr('x1', newloc.ex+(d.z/d3.max(datas,t=>t.z))*150)
+                            //     .attr('y1', yScale(d.y)+Dispy-(d.z/d3.max(datas,t=>t.z))*100)
+                            //     .attr('x2', xScale(d.x)+Dispx+(d.z/d3.max(datas,t=>t.z))*150)
+                            //     .attr('y2', yScale(d.y)+Dispy-(d.z/d3.max(datas,t=>t.z))*100)
+                            //     .attr('stroke', 'red')
+                            //     .attr('stroke-width',0.0025)
+                            // const line3 = g.append('line')
+                            //     .attr('x1', xScale(d.x)+Dispx+(d.z/d3.max(datas,t=>t.z))*150)
+                            //     .attr('y1', newloc.ey-(d.z/d3.max(datas,t=>t.z))*100)
+                            //     .attr('x2', xScale(d.x)+Dispx+(d.z/d3.max(datas,t=>t.z))*150)
+                            //     .attr('y2', yScale(d.y)+Dispy-(d.z/d3.max(datas,t=>t.z))*100)
+                            //     .attr('stroke', 'blue')
+                            //     .attr('stroke-width',0.025)
+                            // const line4 = g.append('line')
+                            //     .attr('x1', xScale(d.x)+Dispx+150)
+                            //     .attr('y1', yScale(d.y)+Dispy-100)
+                            //     .attr('x2', xScale(d.x)+Dispx+(d.z/d3.max(datas,t=>t.z))*150)
+                            //     .attr('y2', yScale(d.y)+Dispy-(d.z/d3.max(datas,t=>t.z))*100)
+                            //     .attr('stroke', 'green')
+                            //     .attr('stroke-width',0.025)
+                            // 添加鼠标事件
+
+                            circle.on('mouseover', function () {
+                                label.text(d.label)
+                                    .attr('x', xScale(d.x) + Dispx + (d.z / d3.max(datas, t => t.z)) * 150 + 10) // 调整标签位置
+                                    .attr('y', yScale(d.y) + Dispy - (d.z / d3.max(datas, t => t.z)) * 100 - 10) // 调整标签位置
+                                    .style('display', 'block');
+
+                                g.append('line')
+                                    .attr('x1', newloc.ex + (d.z / d3.max(datas, t => t.z)) * 150)
+                                    .attr('y1', yScale(d.y) + Dispy - (d.z / d3.max(datas, t => t.z)) * 100)
+                                    .attr('x2', xScale(d.x) + Dispx + (d.z / d3.max(datas, t => t.z)) * 150)
+                                    .attr('y2', yScale(d.y) + Dispy - (d.z / d3.max(datas, t => t.z)) * 100)
+                                    .attr('stroke', 'red')  // 你可以根据需要设置连线的颜色和样式
+                                    .attr('stroke-width', 0.5)
+                                    .attr('id', 'connectingLine1');  // 为了后续移除，给连线一个唯一的ID
+                                g.append('line')
+                                    .attr('x1', xScale(d.x) + Dispx + (d.z / d3.max(datas, t => t.z)) * 150)
+                                    .attr('y1', newloc.ey - (d.z / d3.max(datas, t => t.z)) * 100)
+                                    .attr('x2', xScale(d.x) + Dispx + (d.z / d3.max(datas, t => t.z)) * 150)
+                                    .attr('y2', yScale(d.y) + Dispy - (d.z / d3.max(datas, t => t.z)) * 100)
+                                    .attr('stroke', 'green')  // 你可以根据需要设置连线的颜色和样式
+                                    .attr('stroke-width', 0.5)
+                                    .attr('id', 'connectingLine2');  // 为了后续移除，给连线一个唯一的ID
+                                g.append('line')
+                                    .attr('x1', xScale(d.x) + Dispx + 150)
+                                    .attr('y1', yScale(d.y) + Dispy - 100)
+                                    .attr('x2', xScale(d.x) + Dispx + (d.z / d3.max(datas, t => t.z)) * 150)
+                                    .attr('y2', yScale(d.y) + Dispy - (d.z / d3.max(datas, t => t.z)) * 100)
+                                    .attr('stroke', 'blue')  // 你可以根据需要设置连线的颜色和样式
+                                    .attr('stroke-width', 0.5)
+                                    .attr('id', 'connectingLine3');  // 为了后续移除，给连线一个唯一的ID
+                                g.append('circle')
+                                    .attr('cx', newloc.ex + (d.z / d3.max(datas, t => t.z)) * 150)
+                                    .attr('cy', yScale(d.y) + Dispy - (d.z / d3.max(datas, t => t.z)) * 100)
+                                    .attr('r', 2.0)
+                                    .attr('fill', 'red')
+                                    .attr('stroke', 'none')
+                                    .attr('opacity', 1)
+                                    .attr('id', 'TheCircle1');
+                                g.append('circle')
+                                    .attr('cx', xScale(d.x) + Dispx + (d.z / d3.max(datas, t => t.z)) * 150)
+                                    .attr('cy', newloc.ey - (d.z / d3.max(datas, t => t.z)) * 100)
+                                    .attr('r', 2.0)
+                                    .attr('fill', 'green')
+                                    .attr('stroke', 'none')
+                                    .attr('opacity', 1)
+                                    .attr('id', 'TheCircle2');
+                                g.append('circle')
+                                    .attr('cx', xScale(d.x) + Dispx + 150)
+                                    .attr('cy', yScale(d.y) + Dispy - 100)
+                                    .attr('r', 2.0)
+                                    .attr('fill', 'blue')
+                                    .attr('stroke', 'none')
+                                    .attr('opacity', 1)
+                                    .attr('id', 'TheCircle3');
+                                g.append('circle')
+                                    .attr('cx', xScale(d.x) + Dispx + (d.z / d3.max(datas, t => t.z)) * 150)
+                                    .attr('cy', yScale(d.y) + Dispy - (d.z / d3.max(datas, t => t.z)) * 100)
+                                    .attr('r', 5.2)
+                                    .attr('fill', 'none')
+                                    .attr('stroke', 'orangered')
+                                    .attr('stroke-width', 0.5)
+                                    .attr('opacity', 1)
+                                    .attr('id', 'SelectCircle');
+                                g.append("polygon")
+                                    .attr("points", function () {
+                                        return sf1.map(function (t) {
+                                            return [t.x, t.y - (yScale(0) - yScale(d.y))].join(",");
+                                        }).join(" ");
+                                    })
+                                    .attr("fill", "green")
+                                    .attr('opacity', 0.1)
+                                    .attr('stroke', 'none')
+                                    .attr('id', 'sfu1');
+                                g.append("polygon")
+                                    .attr("points", function () {
+                                        return sf2.map(function (t) {
+                                            return [t.x + (xScale(d.x) - xScale(0)), t.y].join(",");
+                                        }).join(" ");
+                                    })
+                                    .attr("fill", "red")
+                                    .attr('opacity', 0.1)
+                                    .attr('stroke', 'none')
+                                    .attr('id', 'sfu2');
+                                g.append("polygon")
+                                    .attr("points", function () {
+                                        return sf3.map(function (t) {
+                                            return [t.x - (1 - d.z / d3.max(datas, t => t.z)) * 150, t.y + (1 - d.z / d3.max(datas, t => t.z)) * 100].join(",");
+                                        }).join(" ");
+                                    })
+                                    .attr("fill", "blue")
+                                    .attr('opacity', 0.1)
+                                    .attr('stroke', 'none')
+                                    .attr('id', 'sfu3');
+
+                            })
+
+                                .on('mouseout', function () {
+                                    label.style('display', 'none');    // 移除连线
+                                    g.select('#connectingLine1').remove();
+                                    g.select('#connectingLine2').remove();
+                                    g.select('#connectingLine3').remove();
+                                    g.select('#TheCircle1').remove();
+                                    g.select('#TheCircle2').remove();
+                                    g.select('#TheCircle3').remove();
+                                    g.select('#SelectCircle').remove();
+                                    g.select('#sfu1').remove();
+                                    g.select('#sfu2').remove();
+                                    g.select('#sfu3').remove()
+
+                                });
+
+
+                        });
+
+                        // 添加一个 <text> 元素用于显示标签
+                        const label = g.append('text')
+                            .style('display', 'none') // 最初隐藏标签
+                            .style('fill', 'black') // 标签文本颜色
+                            .style("font-size", "18px")
+
+                        for (var i = 0; i <= 10; i++) {
+                            const xdisp = newloc.fx - newloc.ex
+                            const ydisp = newloc.ey - newloc.fy
+                            g.append('text')
+                                .attr('x', newloc.ex + xdisp * i / 10 + 12)
+                                .attr('y', newloc.ey - ydisp * i / 10)
+                                .style('fill', 'black') // 标签文本颜色
+                                .text((d3.max(datas, t => t.z) * i / 10).toFixed(1).toString())
+                                .style("font-size", "8px")
+                        }
+
+
+                        g.selectAll(".text")
+                            .style("font-size", "12px"); // 设置字体大小为12像素
+                        g.append('text')
+                            .attr('x', newloc.ex - 25)
+                            .attr('y', newloc.ey + 55)
+                            .style('fill', 'grey')
+                            .attr('opacity', 0.5)
+                            .text('NBA 2023-24 regular season player data visualization')
+                            .style("font-size", "40px")
+
+                        g.append('text')
+                            .attr('x', newloc.ex - 30)
+                            .attr('y', newloc.ey + 60)
+                            .style('fill', 'black')
+                            .attr('stroke', 'black')
+                            .text('NBA 2023-24 regular season player data visualization')
+                            .style("font-size", "40px")
+                        g.append('text')
+                            .attr('x', newloc.hx)
+                            .attr('y', newloc.hy)
+                            .style('fill', 'black')
+                            .text('Points Per Game')
+                            .style("font-size", "20px")
+                        g.append('text')
+                            .attr('x', newloc.ax)
+                            .attr('y', newloc.ay)
+                            .style('fill', 'black')
+                            .text('Field Goal Percentage')
+                            .style("font-size", "20px")
+                        g.append('text')
+                            .attr('x', newloc.fx)
+                            .attr('y', newloc.fy - 10)
+                            .style('fill', 'black') // 标签文本颜色
+                            .text('Assists Per Game')
+                            .style("font-size", "12px")
+                        g.append('g')
+                            .call(yAxis)
+                            .attr('transform', `translate(${Dispx},${Dispy})`)
+                        g.append('g')
+                            .call(xAxis)
+                            .attr('transform', `translate(${Dispx},${innerHeight + Dispy})`);
+
+                        g.append('line')
+                            .attr('x1', newloc.ex)
+                            .attr('y1', newloc.ey)
+                            .attr('x2', newloc.fx)
+                            .attr('y2', newloc.fy)
+                            .attr('stroke', 'black')
+                            .attr('stroke-width', 1)
+                    }
+
+
+
+
+
+            </script>
+    </div>
+    <div id="lbc2">
+            <script>
+
+
+            // 找到新的SVG元素
+            //const newSvg = d3.select('#newSvg');
+            var datas2=[]
+            var typicaldata=[]
+            var typicaldata2=[]
+            var blkPro=0.33
+            var stlPro=0.33
+            var rebPro=0.33
+            const newSvg = d3.select('#newSvg');
+            const width2= +newSvg.attr('width');//获得svg的width属性，从字符串转化为数值后，赋给变量const width
+            const height2=+newSvg.attr('height');
+            const margin2={top:150,right:280,left:280,bottom:150};//定义边缘空隙
+            const innerWidth2=width2-(margin2.left+margin2.right);
+            const innerHeight2=height2-(margin2.top+margin2.bottom);
+                   newSvg.append('rect')
+                            .attr('x',0)
+                            .attr('y',0)
+                            .attr('width',width2)
+                            .attr('height',height2)
+                            .attr('fill','OrangeRed ')
+                            .attr('stroke','none')
+                            .attr('opacity',0.2)
+            const Dispx2=innerWidth2/3;
+            const Dispy2=innerHeight2/2;
+            const newloc2={ax:Dispx2,ay:Dispy2,
+                        bx:Dispx2+150,by:Dispy2-100,
+                        cx:Dispx2+150+innerWidth2,cy:Dispy2-100,
+                        dx:Dispx2+innerWidth2,dy:Dispy2,
+                        ex:Dispx2,ey:Dispy2+innerHeight2,
+                        fx:Dispx2+150,fy:Dispy2+innerHeight2-100,
+                        gx:Dispx2+150+innerWidth2,gy:Dispy2+innerHeight2-100,
+                        hx:Dispx2+innerWidth2,hy:Dispy2+innerHeight2}
+            const sf1_2=[{x:newloc.ex,y:newloc.ey},{x:newloc.fx,y:newloc.fy},{x:newloc.gx,y:newloc.gy},{x:newloc.hx,y:newloc.hy}]
+            const sf2_2=[{x:newloc.ax,y:newloc.ay},{x:newloc.bx,y:newloc.by},{x:newloc.fx,y:newloc.fy},{x:newloc.ex,y:newloc.ey}]
+            const sf3_2=[{x:newloc.bx,y:newloc.by},{x:newloc.cx,y:newloc.cy},{x:newloc.gx,y:newloc.gy},{x:newloc.fx,y:newloc.fy}]
+            Reread()
+            function Reread() {
+                d3.text("./data/NBA_team_datas_2022_23rgl.csv").then(function (data) {
+                    datas2.splice(0, datas2.length)
+                    typicaldata.splice(0, typicaldata.length)
+                    typicaldata2.splice(0, typicaldata2.length)
+                    var lines = data.split("\n");
+                    lines.forEach(function (line) {
+                        var parts = line.split(",");
+                        var tempdata = {
+                            label: parts[0].trim(),
+                            x: parseFloat(parts[7]) * rebPro + parseFloat(parts[9]) * stlPro + parseFloat(parts[10]) * blkPro,
+                            y: parseFloat(parts[4]),
+                            z: parseFloat(parts[8]),
+
+                        };
+                        if (tempdata.label == 'Chris Paul' || tempdata.label == 'Donovan Mitchell' || tempdata.label == 'Fred VanVleet') {
+                            typicaldata.push(tempdata)
+                        }
+                        if (tempdata.label == 'Giannis Antetokounmpo' || tempdata.label == 'Anthony Davis' || tempdata.label == 'Nikola Jokic') {
+                            typicaldata2.push(tempdata)
+                        }
+                        datas2.push(tempdata);
+                    });
+                    // 在加载完数据后绘制图形
+                    renderGraph2();
+                });
+            }
+            function renderGraph2() {
+                newSvg.selectAll("*").remove();
+
+                const xScale2 = d3.scaleLinear()
+                    .domain([0, d3.max(datas2, d => d.x)])
+                    .range([0, innerWidth2])
+
+                const xAxis2 = d3.axisBottom(xScale2)
+
+
+                const yScale2 = d3.scaleLinear()
+                    .domain([d3.max(datas2, d => d.y), 0])
+                    .range([0, innerHeight2]);
+                const yAxis2 = d3.axisLeft(yScale2);
+                newSvg.append("polygon")
+                    .attr("points", function () {
+                        return sf1.map(function (d) {
+                            return [d.x, d.y].join(",");
+                        }).join(" ");
+                    })
+                    .attr("fill", "green")
+                    .attr('opacity', 0.1)
+                    .attr('stroke', 'green')
+                newSvg.append("polygon")
+                    .attr("points", function () {
+                        return sf2.map(function (d) {
+                            return [d.x, d.y].join(",");
+                        }).join(" ");
+                    })
+                    .attr("fill", "red")
+                    .attr('opacity', 0.1)
+                    .attr('stroke', 'green')
+                newSvg.append("polygon")
+                    .attr("points", function () {
+                        return sf3.map(function (d) {
+                            return [d.x, d.y].join(",");
+                        }).join(" ");
+                    })
+                    .attr("fill", "blue")
+                    .attr('opacity', 0.1)
+                    .attr('stroke', 'green')
+
+                // newSvg.append('rect')
+                //     .attr('x', 0)
+                //     .attr('y', 0)
+                //     .attr('width', width)
+                //     .attr('height', height)
+                //     .attr('fill', 'OrangeRed ')
+                //     .attr('stroke', 'none')
+                //     .attr('opacity', 0.01)
+                newSvg.append('text')
+                    .attr('x', newloc.ax)
+                    .attr('y', newloc.ay)
+                    .style('fill', 'black')
+                    .text('Points Per Game')
+                    .style("font-size", "20px")
+                newSvg.append('text')
+                    .attr('x', newloc.fx)
+                    .attr('y', newloc.fy - 10)
+                    .style('fill', 'black') // 标签文本颜色
+                    .text('Assists Per Game')
+                    .style("font-size", "12px")
+
+                for (var i = 0; i <= d3.max(datas2, d => d.x); i++) {
+                    newSvg.append('line')
+                        .attr('x1', newloc2.ex + xScale2(i))
+                        .attr('y1', newloc2.ey)
+                        .attr('x2', newloc2.fx + xScale2(i))
+                        .attr('y2', newloc2.fy)
+                        .attr('stroke', 'grey')
+                        .attr('stroke-width', 0.2)
+                    newSvg.append('line')
+                        .attr('x1', newloc2.fx + xScale2(i))
+                        .attr('y1', newloc2.fy)
+                        .attr('x2', newloc2.bx + xScale2(i))
+                        .attr('y2', newloc2.by)
+                        .attr('stroke', 'grey')
+                        .attr('stroke-width', 0.1)
+                }
+                for (var i = 0; i <= d3.max(datas2, d => d.y); i++) {
+                    newSvg.append('line')
+                        .attr('x1', newloc2.ex)
+                        .attr('y1', newloc2.ey - yScale2(i))
+                        .attr('x2', newloc2.fx)
+                        .attr('y2', newloc2.fy - yScale2(i))
+                        .attr('stroke', 'grey')
+                        .attr('stroke-width', 0.2)
+                    newSvg.append('line')
+                        .attr('x1', newloc2.fx)
+                        .attr('y1', newloc2.fy - yScale2(i))
+                        .attr('x2', newloc2.gx)
+                        .attr('y2', newloc2.gy - yScale2(i))
+                        .attr('stroke', 'grey')
+                        .attr('stroke-width', 0.1)
+                }
+                for (var i = 0; i <= 10; i++) {
+                    const xdisp2 = newloc2.fx - newloc2.ex
+                    const ydisp2 = newloc2.ey - newloc2.fy
+                    newSvg.append('line')
+                        .attr('x1', newloc2.ex + xdisp2 * i / 10)
+                        .attr('y1', newloc2.ey - ydisp2 * i / 10)
+                        .attr('x2', newloc2.hx + xdisp2 * i / 10)
+                        .attr('y2', newloc2.hy - ydisp2 * i / 10)
+                        .attr('stroke', 'grey')
+                        .attr('stroke-width', 0.9 - i * 0.08)
+                }
+                for (var i = 0; i <= 10; i++) {
+                    const xdisp2 = newloc2.fx - newloc2.ex
+                    const ydisp2 = newloc2.ey - newloc2.fy
+                    newSvg.append('line')
+                        .attr('x1', newloc2.ex + xdisp2 * i / 10)
+                        .attr('y1', newloc2.ey - ydisp2 * i / 10)
+                        .attr('x2', newloc2.ax + xdisp2 * i / 10)
+                        .attr('y2', newloc2.ay - ydisp2 * i / 10)
+                        .attr('stroke', 'grey')
+                        .attr('stroke-width', 0.9 - i * 0.08)
+                }
+                datas2.forEach(d => {
+                    // 绘制数据点
+                    const circle = newSvg.append('circle')
+                        .attr('cx', xScale2(d.x) + Dispx2 + (d.z / d3.max(datas2, t => t.z)) * 150)
+                        .attr('cy', yScale2(d.y) + Dispy2 - (d.z / d3.max(datas2, t => t.z)) * 100)
+                        .attr('r', 2.8)
+                        .attr('fill', 'red')
+                        .attr('stroke', 'none')
+                        .attr('opacity', 1)
+                    const circle1 = newSvg.append('circle')
+                        .attr('cx', newloc2.ex + (d.z / d3.max(datas2, t => t.z)) * 150)
+                        .attr('cy', yScale2(d.y) + Dispy2 - (d.z / d3.max(datas2, t => t.z)) * 100)
+                        .attr('r', 2.0)
+                        .attr('fill', 'grey')
+                        .attr('stroke', 'none')
+                        .attr('opacity', 0.35)
+                    const circle2 = newSvg.append('circle')
+                        .attr('cx', xScale2(d.x) + Dispx2 + (d.z / d3.max(datas2, t => t.z)) * 150)
+                        .attr('cy', newloc2.ey - (d.z / d3.max(datas2, t => t.z)) * 100)
+                        .attr('r', 2.0)
+                        .attr('fill', 'grey')
+                        .attr('stroke', 'none')
+                        .attr('opacity', 0.35)
+                    const circle3 = newSvg.append('circle')
+                        .attr('cx', xScale2(d.x) + Dispx2 + 150)
+                        .attr('cy', yScale2(d.y) + Dispy2 - 100)
+                        .attr('r', 2.0)
+                        .attr('fill', 'grey')
+                        .attr('stroke', 'none')
+                        .attr('opacity', 0.35)
+                    circle.on('mouseover', function () {
+                        label.text(d.label)
+                            .attr('x', xScale2(d.x) + Dispx2 + (d.z / d3.max(datas2, t => t.z)) * 150 + 10) // 调整标签位置
+                            .attr('y', yScale2(d.y) + Dispy2 - (d.z / d3.max(datas2, t => t.z)) * 100 - 10) // 调整标签位置
+                            .style('display', 'block');
+
+                        newSvg.append('line')
+                            .attr('x1', newloc2.ex + (d.z / d3.max(datas2, t => t.z)) * 150)
+                            .attr('y1', yScale2(d.y) + Dispy2 - (d.z / d3.max(datas2, t => t.z)) * 100)
+                            .attr('x2', xScale2(d.x) + Dispx2 + (d.z / d3.max(datas2, t => t.z)) * 150)
+                            .attr('y2', yScale2(d.y) + Dispy2 - (d.z / d3.max(datas2, t => t.z)) * 100)
+                            .attr('stroke', 'red')  // 你可以根据需要设置连线的颜色和样式
+                            .attr('stroke-width', 0.5)
+                            .attr('id', 'connectingLine1');  // 为了后续移除，给连线一个唯一的ID
+                        newSvg.append('line')
+                            .attr('x1', xScale2(d.x) + Dispx2 + (d.z / d3.max(datas2, t => t.z)) * 150)
+                            .attr('y1', newloc2.ey - (d.z / d3.max(datas2, t => t.z)) * 100)
+                            .attr('x2', xScale2(d.x) + Dispx2 + (d.z / d3.max(datas2, t => t.z)) * 150)
+                            .attr('y2', yScale2(d.y) + Dispy2 - (d.z / d3.max(datas2, t => t.z)) * 100)
+                            .attr('stroke', 'green')  // 你可以根据需要设置连线的颜色和样式
+                            .attr('stroke-width', 0.5)
+                            .attr('id', 'connectingLine2');  // 为了后续移除，给连线一个唯一的ID
+                        newSvg.append('line')
+                            .attr('x1', xScale2(d.x) + Dispx2 + 150)
+                            .attr('y1', yScale2(d.y) + Dispy2 - 100)
+                            .attr('x2', xScale2(d.x) + Dispx2 + (d.z / d3.max(datas2, t => t.z)) * 150)
+                            .attr('y2', yScale2(d.y) + Dispy2 - (d.z / d3.max(datas2, t => t.z)) * 100)
+                            .attr('stroke', 'blue')  // 你可以根据需要设置连线的颜色和样式
+                            .attr('stroke-width', 0.5)
+                            .attr('id', 'connectingLine3');  // 为了后续移除，给连线一个唯一的ID
+                        newSvg.append('circle')
+                            .attr('cx', newloc2.ex + (d.z / d3.max(datas2, t => t.z)) * 150)
+                            .attr('cy', yScale2(d.y) + Dispy2 - (d.z / d3.max(datas2, t => t.z)) * 100)
+                            .attr('r', 2.0)
+                            .attr('fill', 'red')
+                            .attr('stroke', 'none')
+                            .attr('opacity', 1)
+                            .attr('id', 'TheCircle1');
+                        newSvg.append('circle')
+                            .attr('cx', xScale2(d.x) + Dispx2 + (d.z / d3.max(datas2, t => t.z)) * 150)
+                            .attr('cy', newloc2.ey - (d.z / d3.max(datas2, t => t.z)) * 100)
+                            .attr('r', 2.0)
+                            .attr('fill', 'green')
+                            .attr('stroke', 'none')
+                            .attr('opacity', 1)
+                            .attr('id', 'TheCircle2');
+                        newSvg.append('circle')
+                            .attr('cx', xScale2(d.x) + Dispx2 + 150)
+                            .attr('cy', yScale2(d.y) + Dispy2 - 100)
+                            .attr('r', 2.0)
+                            .attr('fill', 'blue')
+                            .attr('stroke', 'none')
+                            .attr('opacity', 1)
+                            .attr('id', 'TheCircle3');
+                        newSvg.append('circle')
+                            .attr('cx', xScale2(d.x) + Dispx2 + (d.z / d3.max(datas2, t => t.z)) * 150)
+                            .attr('cy', yScale2(d.y) + Dispy2 - (d.z / d3.max(datas2, t => t.z)) * 100)
+                            .attr('r', 5.2)
+                            .attr('fill', 'none')
+                            .attr('stroke', 'orangered')
+                            .attr('stroke-width', 0.5)
+                            .attr('opacity', 1)
+                            .attr('id', 'SelectCircle');
+                        newSvg.append("polygon")
+                            .attr("points", function () {
+                                return sf1_2.map(function (t) {
+                                    return [t.x, t.y - (yScale2(0) - yScale2(d.y))].join(",");
+                                }).join(" ");
+                            })
+                            .attr("fill", "green")
+                            .attr('opacity', 0.1)
+                            .attr('stroke', 'none')
+                            .attr('id', 'sfu1');
+                        newSvg.append("polygon")
+                            .attr("points", function () {
+                                return sf2_2.map(function (t) {
+                                    return [t.x + (xScale2(d.x) - xScale2(0)), t.y].join(",");
+                                }).join(" ");
+                            })
+                            .attr("fill", "red")
+                            .attr('opacity', 0.1)
+                            .attr('stroke', 'none')
+                            .attr('id', 'sfu2');
+                        newSvg.append("polygon")
+                            .attr("points", function () {
+                                return sf3_2.map(function (t) {
+                                    return [t.x - (1 - d.z / d3.max(datas2, t => t.z)) * 150, t.y + (1 - d.z / d3.max(datas2, t => t.z)) * 100].join(",");
+                                }).join(" ");
+                            })
+                            .attr("fill", "blue")
+                            .attr('opacity', 0.1)
+                            .attr('stroke', 'none')
+                            .attr('id', 'sfu3');
+
+                    })
+
+                        .on('mouseout', function () {
+                            label.style('display', 'none');    // 移除连线
+                            newSvg.select('#connectingLine1').remove();
+                            newSvg.select('#connectingLine2').remove();
+                            newSvg.select('#connectingLine3').remove();
+                            newSvg.select('#TheCircle1').remove();
+                            newSvg.select('#TheCircle2').remove();
+                            newSvg.select('#TheCircle3').remove();
+                            newSvg.select('#SelectCircle').remove();
+                            newSvg.select('#sfu1').remove();
+                            newSvg.select('#sfu2').remove();
+                            newSvg.select('#sfu3').remove()
+
+                        });
+
+
+                });
+                typicaldata.forEach(d => {
+                    // 绘制数据点
+                    const circle = newSvg.append('circle')
+                        .attr('cx', xScale2(d.x) + Dispx2 + (d.z / d3.max(datas2, t => t.z)) * 150)
+                        .attr('cy', yScale2(d.y) + Dispy2 - (d.z / d3.max(datas2, t => t.z)) * 100)
+                        .attr('r', 5.8)
+                        .attr('fill', 'none')
+                        .attr('stroke', 'blue')
+                        .attr('opacity', 1)
+
+                });
+                typicaldata2.forEach(d => {
+                    // 绘制数据点
+                    const circle = newSvg.append('circle')
+                        .attr('cx', xScale2(d.x) + Dispx2 + (d.z / d3.max(datas2, t => t.z)) * 150)
+                        .attr('cy', yScale2(d.y) + Dispy2 - (d.z / d3.max(datas2, t => t.z)) * 100)
+                        .attr('r', 5.8)
+                        .attr('fill', 'none')
+                        .attr('stroke', 'green')
+                        .attr('stroke-width',2)
+                        .attr('opacity', 1)
+
+                });
+                // 添加一个 <text> 元素用于显示标签
+                const label = newSvg.append('text')
+                    .style('display', 'none') // 最初隐藏标签
+                    .style('fill', 'black') // 标签文本颜色
+                    .style("font-size", "18px")
+
+                for (var i = 0; i <= 10; i++) {
+                    const xdisp2 = newloc2.fx - newloc2.ex
+                    const ydisp2 = newloc2.ey - newloc2.fy
+                    newSvg.append('text')
+                        .attr('x', newloc2.ex + xdisp2 * i / 10 + 12)
+                        .attr('y', newloc2.ey - ydisp2 * i / 10)
+                        .style('fill', 'black') // 标签文本颜色
+                        .text((d3.max(datas2, t => t.z) * i / 10).toFixed(1).toString())
+                        .style("font-size", "8px")
+                }
+
+
+                newSvg.selectAll(".text")
+                    .style("font-size", "12px"); // 设置字体大小为12像素
+                newSvg.append('text')
+                    .attr('x', newloc.ex - 25)
+                    .attr('y', newloc.ey + 55)
+                    .style('fill', 'grey')
+                    .attr('opacity', 0.5)
+                    .text('NBA 2022-23 regular season player data visualization')
+                    .style("font-size", "40px")
+                newSvg.append('text')
+                    .attr('x', newloc.ex - 30)
+                    .attr('y', newloc.ey + 60)
+                    .style('fill', 'black')
+                    .style('stroke', 'black')
+                    .attr('opacity', 1)
+                    .text('NBA 2022-23 regular season player data visualization')
+                    .style("font-size", "40px")
+
+                newSvg.append('text')
+                    .attr('x', newloc.hx)
+                    .attr('y', newloc.hy)
+                    .style('fill', 'black')
+                    .text('SRB')
+                    .style("font-size", "20px")
+
+                newSvg.append('g')
+                    .call(yAxis2)
+                    .attr('transform', `translate(${Dispx2},${Dispy2})`)
+                newSvg.append('g')
+                    .call(xAxis2)
+                    .attr('transform', `translate(${Dispx2},${innerHeight2 + Dispy2})`);
+
+                newSvg.append('line')
+                    .attr('x1', newloc2.ex)
+                    .attr('y1', newloc2.ey)
+                    .attr('x2', newloc2.fx)
+                    .attr('y2', newloc2.fy)
+                    .attr('stroke', 'black')
+                    .attr('stroke-width', 1)
+            }
+            function changeSSL() {
+                // Prompt user for a new ssl value
+                var newSSL = prompt("Proportion of Blocks:", blkPro);
+                // Check if the input is a number
+                if (!isNaN(newSSL)) {
+                    blkPro = parseFloat(newSSL);
+                    // Re-render the graph with the new ssl value
+                    Reread();
+                } else {
+                    alert("Proportion of Blocks!");
+                }
+            }
+            function changeSSL1() {
+                // Prompt user for a new ssl value
+                var newSSL = prompt("Proportion of Steals:", stlPro);
+                // Check if the input is a number
+                if (!isNaN(newSSL)) {
+                    stlPro = parseFloat(newSSL);
+                    // Re-render the graph with the new ssl value
+                    Reread();
+                } else {
+                    alert("Proportion of Steals!");
+                }
+            }
+            function changeSSL2() {
+                // Prompt user for a new ssl value
+                var newSSL = prompt("Proportion of Rebounds:", rebPro);
+                // Check if the input is a number
+                if (!isNaN(newSSL)) {
+                    rebPro = parseFloat(newSSL);
+                    // Re-render the graph with the new ssl value
+                    Reread();
+                } else {
+                    alert("Proportion of Rebounds!");
+                }
+            }
+            </script>
+    </div>
+    <div id="lbc3">
+            <script>
+                const fSvg = d3.select('#figureSvg');
+                const width3=+fSvg.attr('width');//获得svg的width属性，从字符串转化为数值后，赋给变量const width
+                const height3=+fSvg.attr('height');
+                const margin3={top:150,right:280,left:280,bottom:150};//定义边缘空隙
+                const innerWidth3=width3-(margin3.left+margin3.right);
+                const innerHeight3=height3-(margin3.top+margin3.bottom);
+                const fdata=[{name: "Chris Paul", path: "./data/figure/chris-paul.png",fig:182.88},
+                    {name: "Donovan Mitchell", path: "./data/figure/donovan-mitchell.png",fig:190.5},
+                    {name: "Fred Vanvleet", path: "./data/figure/fred-vanvleet.png",fig:182.88},
+                    {name: "Anthony Davis", path: "./data/figure/anthony-davis.png",fig:208.28},
+                    {name: "Giannis Antetokounmpo", path: "./data/figure/giannis-antetokounmpo.png",fig:210.82},
+                    {name: "Nikola Jokic", path: "./data/figure/nikola-jokic.png",fig:210.82},
+                ]
+                    fSvg.append("image")
+                            .attr("xlink:href", './background3.jpeg')
+                            .attr("width", width3) // 设置图像宽度
+                            .attr("height", height3) // 设置图像高度
+                            .attr("x",  0) // 设置图像水平位置
+                            .attr("y", 0) // 设置图像垂直位置
+                            .attr('transform', `translate(${0},${0})`)
+                        .attr('opacity',0.25)
+
+                const xScalef=d3.scaleBand()
+                    .domain(fdata.map(d=>d.name))
+                    .range([innerWidth3,0]);
+                const xAxisf=d3.axisBottom(xScalef);
+
+                const yScalef=d3.scaleLinear()
+                    .domain([d3.max(fdata,d=>d.fig),175])//对比2000年应采用2000年的最大值
+                    .range([0,innerHeight3]);
+                const yAxisf=d3.axisLeft(yScalef)
+                fdata.forEach(d => {
+                    // 绘制数据点
+                    fSvg.append('rect')
+                        .attr('x', xScalef(d.name))
+                        .attr('y', yScalef(d.fig))
+                        .attr('width', innerHeight3/fdata.length)
+                        .attr('height', yScalef(175)-yScalef(d.fig))
+                        .attr('fill', 'OrangeRed ')
+                        .attr('stroke', 'none')
+                        .attr('opacity', 0.9)
+                        .attr('transform', `translate(${margin3.left+(innerWidth3/fdata.length)/4},${margin3.top})`)
+                    fSvg.append("image")
+                            .attr("xlink:href", d.path)
+                            .attr("width", 100) // 设置图像宽度
+                            .attr("height", 100) // 设置图像高度
+                            .attr("x",  xScalef(d.name)-15) // 设置图像水平位置
+                            .attr("y", yScalef(d.fig)-100) // 设置图像垂直位置
+                            .attr('transform', `translate(${margin3.left+(innerWidth3/fdata.length)/4},${margin3.top})`)
+
+                });
+                fSvg.append('g')
+                    .call(xAxisf)
+                    .attr('transform', `translate(${margin3.left},${margin3.top+innerHeight3})`)
+                fSvg.append('g')
+                    .call(yAxisf)
+                    .attr('transform', `translate(${margin3.left},${margin3.top})`)
+                fSvg.append('text')
+                    .attr('x', margin3.left-50)
+                    .attr('y', margin3.top-10)
+                    .style('fill', 'black')
+                    .text('HT(cm)')
+                    .style("font-size", "20px")
+                fSvg.append('text')
+                    .attr('x', margin3.left+innerWidth3)
+                    .attr('y', margin3.top+innerHeight3)
+                    .style('fill', 'black')
+                    .text('Name')
+                    .style("font-size", "20px")
+            </script>
+    </div>
+</body>
+</html>
+</head>
+<body>
+
+</body>

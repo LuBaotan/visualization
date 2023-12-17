@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<script src="https://d3js.org/d3.v5.min.js" charset="utf-8"></script>
+	<style>
+		div.control-group {
+			position: absolute;
+			/* 使用绝对定位 */
+			top: 5px;
+			/* 距离父元素顶部的距离 */
+			left: 740px;
+			/* 距离父元素左侧的距离 */
+
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			margin-top: 20px;
+		}
+
+		.control-group button {
+			width: 100px;
+			height: 40px;
+			border-radius: 10px;
+			/*使按钮变为圆角矩形*/
+			margin-bottom: 10px;
+		}
+
+		.control-group button:active {
+			transform: scale(1.1);
+		}
+
+		div.control-group2 {
+			position: absolute;
+			/* 使用绝对定位 */
+			top: 5px;
+			/* 距离父元素顶部的距离 */
+			left: 630px;
+			/* 距离父元素左侧的距离 */
+
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			margin-top: 20px;
+		}
+
+		.control-group2 button {
+			width: 100px;
+			height: 40px;
+			border-radius: 10px;
+			/*使按钮变为圆角矩形*/
+			margin-bottom: 10px;
+		}
+
+		.control-group3 button:active {
+			transform: scale(1.1);
+		}
+
+		div.control-group3 {
+			position: absolute;
+			/* 使用绝对定位 */
+			top: 5px;
+			/* 距离父元素顶部的距离 */
+			left: 1080px;
+			/* 距离父元素左侧的距离 */
+
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			margin-top: 20px;
+		}
+
+		.control-group3 button {
+			width: 100px;
+			height: 40px;
+			border-radius: 10px;
+			/*使按钮变为圆角矩形*/
+			margin-bottom: 10px;
+		}
+
+		.control-group3 button:active {
+			transform: scale(1.1);
+		}
+
+		div.control-group4 {
+			position: absolute;
+			/* 使用绝对定位 */
+			top: 5px;
+			/* 距离父元素顶部的距离 */
+			left: 250px;
+			/* 距离父元素左侧的距离 */
+
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			margin-top: 20px;
+		}
+
+		.control-group4 button {
+			width: 100px;
+			height: 40px;
+			border-radius: 10px;
+			/*使按钮变为圆角矩形*/
+			margin-bottom: 10px;
+		}
+	</style>
+</head>
+</head>
+
+<body>
+	<div class='control-group'>
+		<a href="./lbc/LAB.html"><button>Basketball</button></a>
+	</div>
+	<div class="control-group2">
+		<a href="./lbt/index.html"><button>Badminton</button></a>
+	</div>
+	<div class="control-group3">
+		<a href="./wxl/file/LAB8.html"><button>Hexagonal</button></a>
+	</div>
+	<div class="control-group4">
+		<button>Sport-Data</button></a>
+	</div>
+	<div style="text-align: center;">
+		<svg id="mysvg" width=1000 height=800></svg>
+	</div>
+	<script>
+		d3.select("svg")
+		 .append("image")
+         .attr("xlink:href", "bc.png")
+         .attr("x", 0)
+         .attr("y", 0)
+         .attr("width", 950)
+         .attr("height", 660)
+		 //.style("opacity", 0.5); // 设置透明度为50%
+	</script>
+</body>
+
+</html>
