@@ -5,6 +5,33 @@
     <title>可视化实验</title>
     <script src="./libs/d3.v7.js"></script>
     <script src="./libs/vega.js"></script>
+    <style>
+        div.control-group2 {
+			position: absolute;
+			/* 使用绝对定位 */
+			top: 30px;
+			/* 距离父元素顶部的距离 */
+			left: 20px;
+			/* 距离父元素左侧的距离 */
+
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			margin-top: 20px;
+		}
+
+		.control-group2 button {
+			width: 100px;
+			height: 40px;
+			border-radius: 10px;
+			/*使按钮变为圆角矩形*/
+			margin-bottom: 10px;
+		}
+
+		.control-group2 button:active {
+			transform: scale(1.1);
+		}
+    </style>
 </head>
 <body>
     <svg width="1400" height="700" id="mainsvg" className="svgs"></svg>
@@ -14,6 +41,9 @@
     <button onclick="changeSSL2()">Rebounds</button>
     <svg width="1400" height="700" id="figureSvg"></svg>
 
+    <div class="control-group2">
+		<a href="../../index.html"><button>Home</button></a>
+	</div>
     <div id="lbc1">
             <script>
                     var datas=[]

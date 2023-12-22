@@ -105,7 +105,10 @@ function mydraw2() {
    function select_rect(d, i) {
       //d3.select('.image1').select('image').remove();
       //d3.select('.image2').select('image').remove();
-      clear_chart()
+      for (let i = 0; i < 11; i++) {
+         clear_chart_all(`.name${i}`);
+      }
+      clear_below()
       name_rect.filter((d, j) => i === j)
          .transition()
          .duration(100)
@@ -252,7 +255,7 @@ function mydraw2() {
          .attr("x", width - margin.right + 15)
          .attr("y", height - 18)
          .style('fill', 'black')
-         .text("y/周")
+         .text("x/周")
 
       // 定义线段生成器
       const linechart = d3.line()
@@ -400,7 +403,7 @@ function mydraw2() {
          .attr("x", width - margin.right + 15)
          .attr("y", height - 18)
          .style('fill', 'black')
-         .text("y/周")
+         .text("x/周")
 
       mouse(datas, put_data, scales);
 
@@ -434,7 +437,7 @@ function mydraw2() {
                yearSlice.push(data[i])
             }
          }
-         console.log(yearSlice)
+         //console.log(yearSlice)
 
          // 定义线段生成器
          const linechart = d3.line()
@@ -534,7 +537,7 @@ function mydraw2() {
             if (ymin < 0) {
                ymin = 0;
             }
-            console.log(ymin, ymax)
+            //console.log(ymin, ymax)
             //console.log('up: ', x1, y1)
             let left2 = datas.indexOf(put_data[left1])
             let right2 = datas.indexOf(put_data[right1])
