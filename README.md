@@ -12,10 +12,12 @@
 
 ## 数据来源
 
-- **篮球**：虎扑：https://nba.hupu.com/teams
-- ESPN：https://www.espn.com/
-- **羽毛球**：BWF官网：https://bwf.tournamentsoftware.com/ranking/ranking.aspx?rid=70
-中国羽联官网：https://www.badmintoncn.com/cbo_star/
+- **篮球**：
+- -虎扑：https://nba.hupu.com/teams
+- -ESPN：https://www.espn.com/
+- **羽毛球**：
+- -BWF官网：https://bwf.tournamentsoftware.com/ranking/ranking.aspx?rid=70
+- -中国羽联官网：https://www.badmintoncn.com/cbo_star/
 
 ## 功能描述
 
